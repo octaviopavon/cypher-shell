@@ -10,25 +10,27 @@ Neo4j Cypher Shell skill. Connect once, query fast, inspect schemas.
 
 ## Connection Config
 
-All commands source `~/.neo4j-connection` which exports **native cypher-shell env vars**:
+`connect` writes `~/.neo4j-connection` (env vars) **and** injects a one-line loader into the user's shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.profile`). After that, every new Bash invocation has credentials loaded automatically via native cypher-shell env vars:
 
-| Env Var | cypher-shell flag | Default |
-|---------|------------------|---------|
-| `NEO4J_URI` / `NEO4J_ADDRESS` | `-a, --address, --uri` | `neo4j://localhost:7687` |
-| `NEO4J_USERNAME` | `-u, --username` | — |
-| `NEO4J_PASSWORD` | `-p, --password` | — |
-| `NEO4J_DATABASE` | `-d, --database` | (default db) |
+| Env Var | cypher-shell flag |
+|---------|------------------|
+| `NEO4J_URI` | `-a, --address, --uri` |
+| `NEO4J_USERNAME` | `-u, --username` |
+| `NEO4J_PASSWORD` | `-p, --password` |
+| `NEO4J_DATABASE` | `-d, --database` |
 
-Pre-flight for every command (except `connect` and `install`):
+**Execution pattern** (after connect):
 
 ```bash
-source ~/.neo4j-connection 2>/dev/null || { echo "Not connected. Run /cypher-shell connect <uri>"; exit 1; }
+cypher-shell --format verbose "<QUERY>"
 ```
 
-Execution pattern:
+No `source`, no flags, no credentials. Just `cypher-shell` + query.
+
+Pre-flight for every command (except `connect` and `install`): verify env var `NEO4J_URI` is set. If not:
 
 ```bash
-source ~/.neo4j-connection && cypher-shell --format verbose "<QUERY>"
+if [ -z "$NEO4J_URI" ]; then echo "Not connected. Run /cypher-shell connect <uri>"; exit 1; fi
 ```
 
 ---
@@ -56,7 +58,7 @@ Everything after the first word becomes the sub-argument.
 
 1. Ask user for username (default: `neo4j`) and password
 2. Optionally ask for database name
-3. Write config:
+3. Write credentials file:
 
 ```bash
 cat > ~/.neo4j-connection << 'EOF'
@@ -65,22 +67,48 @@ export NEO4J_USERNAME="<user>"
 export NEO4J_PASSWORD="<pass>"
 export NEO4J_DATABASE="<db>"
 EOF
+chmod 600 ~/.neo4j-connection
 ```
 
-4. Test: `source ~/.neo4j-connection && cypher-shell "RETURN 'connected' AS status;"`
-5. On success, fetch server info:
+4. **Inject loader into shell profile** so every future shell session auto-loads credentials. Detect the profile file and append the loader line **only if not already present**:
 
 ```bash
-source ~/.neo4j-connection && cypher-shell --format verbose \
+# Detect shell profile
+if [ -f ~/.zshrc ]; then
+  SHELL_PROFILE=~/.zshrc
+elif [ -f ~/.bashrc ]; then
+  SHELL_PROFILE=~/.bashrc
+elif [ -f ~/.bash_profile ]; then
+  SHELL_PROFILE=~/.bash_profile
+else
+  SHELL_PROFILE=~/.profile
+fi
+
+# Append loader only if not already there
+LOADER='[ -f ~/.neo4j-connection ] && source ~/.neo4j-connection'
+grep -qF "$LOADER" "$SHELL_PROFILE" 2>/dev/null || echo "$LOADER" >> "$SHELL_PROFILE"
+```
+
+5. **Load credentials into current session** (so this session works immediately without restart):
+
+```bash
+source ~/.neo4j-connection
+```
+
+6. Test connection: `cypher-shell "RETURN 'connected' AS status;"`
+7. On success, fetch server info:
+
+```bash
+cypher-shell --format verbose \
   "CALL dbms.components() YIELD name, versions, edition RETURN name, versions[0] AS version, edition;"
 ```
 
 ```bash
-source ~/.neo4j-connection && cypher-shell --format verbose \
+cypher-shell --format verbose \
   "SHOW DATABASES YIELD name, currentStatus, default RETURN name, currentStatus, default ORDER BY name;"
 ```
 
-Report: version, edition, databases, URI.
+Report: version, edition, databases, URI. Confirm that credentials are persisted and no flags needed going forward.
 
 ### Without URI
 
@@ -101,8 +129,8 @@ If `~/.neo4j-connection` exists, show current config (mask password). Otherwise 
 
 ## test
 
-1. Check `~/.neo4j-connection` exists
-2. `source ~/.neo4j-connection && cypher-shell "RETURN 'ok' AS status;"`
+1. Verify `NEO4J_URI` env var is set (if not, tell user to run `/cypher-shell connect <uri>`)
+2. `cypher-shell "RETURN 'ok' AS status;"`
 3. Show: URI, user, database, version
 
 ### Troubleshooting (if test fails)
@@ -134,7 +162,7 @@ Requires **Java 21+**.
 If sub-argument contains Cypher keywords (`MATCH`, `CREATE`, `MERGE`, `CALL`, `SHOW`, `RETURN`, `WITH`, `UNWIND`, `LOAD`, `DROP`, `DELETE`, `EXPLAIN`, `PROFILE`, `FILTER`, `LET`, `SEARCH`, `FINISH`), run directly:
 
 ```bash
-source ~/.neo4j-connection && cypher-shell --format verbose "<sub-argument>"
+cypher-shell --format verbose "<sub-argument>"
 ```
 
 ### Shortcuts
