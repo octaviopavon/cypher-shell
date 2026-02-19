@@ -1,0 +1,15 @@
+# Sensitive files
+.neo4j-connection
+*.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/

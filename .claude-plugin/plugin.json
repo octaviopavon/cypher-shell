@@ -1,0 +1,12 @@
+{
+  "name": "cypher-shell",
+  "description": "Expert Neo4j Cypher Shell skills for Claude Code. Connect, query, and inspect graph databases via cypher-shell CLI.",
+  "version": "1.0.0",
+  "author": {
+    "name": "octavio"
+  },
+  "homepage": "https://github.com/octaviopavon/cypher-shell",
+  "repository": "https://github.com/octaviopavon/cypher-shell",
+  "license": "MIT",
+  "keywords": ["neo4j", "cypher", "cypher-shell", "graph-database", "gds"]
+}

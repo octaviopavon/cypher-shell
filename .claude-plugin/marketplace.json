@@ -1,0 +1,19 @@
+{
+  "name": "cypher-shell",
+  "description": "Neo4j Cypher Shell skills for Claude Code — connect, query, and inspect graph databases.",
+  "owner": {
+    "name": "Octavio Pavon",
+    "email": "octaviopavon@github.com"
+  },
+  "plugins": [
+    {
+      "name": "cypher-shell",
+      "description": "Expert Neo4j Cypher Shell skills: connect to instances, run Cypher queries, and retrieve full graph schemas via cypher-shell CLI.",
+      "version": "1.0.0",
+      "source": "./",
+      "author": {
+        "name": "Octavio Pavon"
+      }
+    }
+  ]
+}
