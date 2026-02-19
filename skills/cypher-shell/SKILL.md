@@ -1,9 +1,7 @@
 ---
 name: cypher-shell
-description: Neo4j Cypher Shell — connect to instances, run Cypher queries, and retrieve full graph schemas via cypher-shell CLI. Use when the user mentions neo4j, cypher, graph database, cypher-shell, or wants to query a graph.
+description: "Neo4j Cypher Shell skill. Connect to instances, run Cypher queries, and retrieve full graph schemas via cypher-shell CLI."
 disable-model-invocation: true
-argument-hint: [connect URI | query CYPHER | schema [Label] | install | test]
-allowed-tools: Bash(source ~/.neo4j-connection *), Bash(cypher-shell *), Bash(java -version), Bash(which cypher-shell), Bash(nc -z *), Bash(cat > ~/.neo4j-connection *), Bash(echo *)
 ---
 
 # cypher-shell
